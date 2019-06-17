@@ -22,7 +22,9 @@ parser.add_argument('--scale_levels', default=5, type=int, help='nr. of scales i
 parser.add_argument('--M', default=33, type=int, help='noise level')
 parser.add_argument('--epoch', default=50, type=int, help='number of train epochs')
 parser.add_argument('--epoch_steps', default=100, type=int, help='steps per epoch')
-parser.add_argument('--lr', default=1e-3, type=float, help='initial learning rate for Adam')
+# Learning rate is relatively low - the network learns quite quickly anyway
+# So might as well ensure we get a well approximated gradient descent
+parser.add_argument('--lr', default=1e-4, type=float, help='initial learning rate for Adam')
 args = parser.parse_args()
 
 
@@ -170,5 +172,6 @@ def train_model():
                         )
 
 
+# Training takes about ~30 mins on a GTX 1050
 if __name__ == '__main__':
     train_model()

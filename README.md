@@ -15,6 +15,10 @@ A pre-trained model is included in ./TrainingCode/saved_models that is used for 
 
 The code relies heavily on Unity's new Burst and DOTS functionality.
 
+The code uses 2 of my other projects: <br />
+**Point cloud visualization** <https://github.com/ArthurBrussee/TCParticles> <br />
+**K-Nearest Neighbour searching** <https://github.com/ArthurBrussee/KNN>
+
 ## Results
 
 ![Comparison on Cylinders](https://github.com/ArthurBrussee/PointCloudNormals/blob/master/Images/cylinderCompare.PNG?raw=true)

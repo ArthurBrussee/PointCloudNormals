@@ -13457,7 +13457,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &755136002
 Transform:
   m_ObjectHideFlags: 0
@@ -28776,7 +28776,7 @@ MonoBehaviour:
   WriteData: 0
   ShowErrors: 1
   UseCNN: 0
-  NoiseLevel: 0.05
+  NoiseLevel: 0.01
   SampleRate: 0.1
 --- !u!114 &1723007602
 MonoBehaviour:

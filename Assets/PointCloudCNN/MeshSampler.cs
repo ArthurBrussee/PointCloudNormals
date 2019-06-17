@@ -147,7 +147,7 @@ public static class MeshSampler {
 		}
 	}
 	
-	public static NativeArray<MeshPoint> SampleRandomPointsOnMesh(Mesh mesh, Texture2D albedo, Texture2D smoothness, Texture2D normalMap, int pointCount, float noiseLevel) {
+	public static NativeArray<MeshPoint> SampleRandomPointsOnMesh(Mesh mesh, Texture2D albedo, Texture2D normalMap, int pointCount, float noiseLevel) {
 		using (s_sampleMeshMarker.Auto()) {
 
 			NormalTex normalMapTex;
@@ -161,7 +161,7 @@ public static class MeshSampler {
 
 				Graphics.SetRenderTarget(tex);
 				GL.Viewport(new Rect(0, 0, normalMap.width, normalMap.height));
-				GL.LoadOrtho(); // build ortho camera
+				GL.LoadOrtho();
 				getNormalMapMaterial.SetTexture("_BumpMap", normalMap);
 				getNormalMapMaterial.SetPass(0);
 				Graphics.DrawMeshNow(mesh, Matrix4x4.identity, 0);
@@ -180,7 +180,6 @@ public static class MeshSampler {
 			}
 
 			var albedoTex = new ColorTex {Data = albedo.GetRawTextureData<Color32>(), Size = math.int2(albedo.width, albedo.height)};
-			var smoothnessTex = new ColorTex {Data = smoothness.GetRawTextureData<Color32>(), Size = math.int2(smoothness.width, smoothness.height)};
 
 			var triangles = new NativeArray<int>(mesh.triangles, Allocator.TempJob);
 			var vertices = new NativeArray<float3>(ToNative(mesh.vertices), Allocator.TempJob);

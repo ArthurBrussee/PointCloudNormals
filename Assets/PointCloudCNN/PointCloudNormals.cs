@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -121,7 +120,6 @@ public static class PointCloudNormals {
 			int kMax = KScales[c_scaleLevels - 1];
 			int neighbourBaseOffset = index * kMax;
 
-			
 			// First, determine PCA basis
 			// We do this for one scale - our medium scale
 			const int c_kBasisIndex = 2;
@@ -197,8 +195,8 @@ public static class PointCloudNormals {
 
 			// Now do 2D PCA for the hough spaced normals
 			float3x3 texCov = float3x3.identity;
-
 			float2 meanTex = float2.zero;
+			
 			for (int i = 0; i < c_hypotheses; ++i) {
 				meanTex += houghNormals[i];
 			}
@@ -219,6 +217,7 @@ public static class PointCloudNormals {
 				}
 			}
 			texCov[2][2] = math.FLT_MIN_NORMAL; // ensure z has smallest eigen value, so we only rotate xy
+			
 			mathext.eigendecompose(texCov, out float3x3 pcaBasisTex, out float3 _);
 
 			// Get a pointer to the current hough histogram
@@ -291,8 +290,8 @@ public static class PointCloudNormals {
 			int maxK = KScales[c_scaleLevels - 1];
 			s_queryNeighboursMarker.Begin();
 
-			var neighbours = new NativeArray<int>(queryPositions.Length * maxK, Allocator.TempJob);
 			var truePositions = new NativeArray<float3>(meshPoints.Select(p => p.Position).ToArray(), Allocator.TempJob);
+			var neighbours = new NativeArray<int>(truePositions.Length * maxK, Allocator.TempJob);
 
 			var tree = new KnnContainer(truePositions, true, Allocator.TempJob);
 
@@ -300,7 +299,7 @@ public static class PointCloudNormals {
 			new KNearestBatchQueryJob(tree, truePositions, neighbours).ScheduleBatch(truePositions.Length, 512).Complete();
 
 			var pointDensities = new NativeArray<float>(meshPoints.Length, Allocator.TempJob);
-
+			
 			new QueryDensityJob {
 				PointDensitiesResult = pointDensities,
 				Positions = truePositions,
@@ -315,7 +314,7 @@ public static class PointCloudNormals {
 			
 			// Now construct all hough histograms
 			var houghTextures = new NativeArray<HoughHistogram>(queryPositions.Length, Allocator.Persistent);
-
+			
 			using (s_houghTexMarker.Auto()) {
 				var random = new Random(23454575);
 
@@ -333,7 +332,6 @@ public static class PointCloudNormals {
 			}
 
 			// Release all memory we used in the process
-
 			neighbours.Dispose();
 			pointDensities.Dispose();
 			meshPoints.Dispose();
@@ -514,28 +512,28 @@ public static class PointCloudNormals {
 							totalHisto[x + y * c_m] += tex.Counts[x + y * c_m + kIndex * c_m * c_m];
 						}
 					}
+				}
 
-					int2 maxBin = math.int2(-1, -1);
-					int maxBinCount = 0;
-					for (int y = 0; y < c_m; ++y) {
-						for (int x = 0; x < c_m; ++x) {
-							int count = totalHisto[x + y * c_m];
+				int2 maxBin = math.int2(-1, -1);
+				int maxBinCount = 0;
+				for (int y = 0; y < c_m; ++y) {
+					for (int x = 0; x < c_m; ++x) {
+						int count = totalHisto[x + y * c_m];
 
-							if (count > maxBinCount) {
-								maxBinCount = count;
-								maxBin = math.int2(x, y);
-							}
+						if (count > maxBinCount) {
+							maxBinCount = count;
+							maxBin = math.int2(x, y);
 						}
 					}
-
-					// M - 1 to compensate for floor() in encoding
-					// This way with M=33 we encode cardinal directions exactly!
-					float2 normalUv = math.float2(maxBin) / (c_m - 1.0f);
-					float2 normalXy = 2.0f * normalUv - 1.0f;
-
-					// Write final predicted normal
-					Normals[index] = GetNormalFromPrediction(normalXy, tex.NormalsBasis, tex.TexBasis, trueNormal);
 				}
+
+				// M - 1 to compensate for floor() in encoding
+				// This way with M=33 we encode cardinal directions exactly!
+				float2 normalUv = math.float2(maxBin) / (c_m - 1.0f);
+				float2 normalXy = 2.0f * normalUv - 1.0f;
+
+				// Write final predicted normal
+				Normals[index] = GetNormalFromPrediction(normalXy, tex.NormalsBasis, tex.TexBasis, trueNormal);
 			}
 		}
 	}

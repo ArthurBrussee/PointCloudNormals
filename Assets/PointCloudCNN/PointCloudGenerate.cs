@@ -29,20 +29,15 @@ public class PointCloudGenerate : MonoBehaviour {
 		Material mat = Tester.GetComponent<MeshRenderer>().sharedMaterial;
 
 		var tex = mat.GetTexture("_MainTex") as Texture2D;
-		var smoothnessTex = mat.GetTexture("_MetallicGlossMap") as Texture2D;
 		var normalTex = mat.GetTexture("_BumpMap") as Texture2D;
 
 		if (tex == null) {
 			tex = Texture2D.whiteTexture;
 		}
 
-		if (smoothnessTex == null) {
-			smoothnessTex = Texture2D.whiteTexture;
-		}
-
 		// Get points on the mesh
-		var meshPoints = MeshSampler.SampleRandomPointsOnMesh(mesh, tex, smoothnessTex, normalTex, PointCount, NoiseLevel);
-
+		var meshPoints = MeshSampler.SampleRandomPointsOnMesh(mesh, tex, normalTex, PointCount, NoiseLevel);
+		
 		// Pick what particles we're going to actually calculate normals for
 		var sampleIndices = new NativeList<int>(Allocator.TempJob);
 		var rand = new Random(8976543);
@@ -67,22 +62,18 @@ public class PointCloudGenerate : MonoBehaviour {
 		
 		var histograms = PointCloudNormals.CalculateHistograms(meshPoints, queryPositions, trueNormals);
 
-		
-		// Folder, CloudName, WriteData, UseCNN, ShowErrors
-
 		// Now that we have the hough histograms,
 		// we can estimate normals!
-
 		NativeArray<float3> reconstructedNormals = PointCloudNormals.CalculateNormals(histograms, trueNormals, UseCNN);
 
 		// Ok we have our properties -> Measure how well we did...
-
-		// Measure RMS & PGP per particle
 		NativeArray<float> reconstructionError = PointCloudNormals.CalculateScore(reconstructedNormals, trueNormals, out float rms, out float pgp);
+
+		// Log some info about how well we did
+		string methodName = UseCNN ? "CNN" : "MaxBin";
+		Debug.Log($"{name} finished using {methodName}. Total RMS: {rms}, PGP: {pgp}.");
 		
-		
-		// string methodName = UseCNN ? "CNN" : "MaxBin";
-		// Debug.Log($"{name} finished using {methodName}. Total RMS: {rms}, PGP: {pgp}. Time: {sw.ElapsedMilliseconds}ms");
+		// Now visualize it using TC Particles
 		var pointCloudData = PointCloudNormals.ConstructPointCloudData(queryPositions, reconstructedNormals, queryColors, ShowErrors, reconstructionError);
 
 		// Write hough textures to disk if requested
@@ -96,6 +87,7 @@ public class PointCloudGenerate : MonoBehaviour {
 		queryColors.Dispose();
 		reconstructedNormals.Dispose();
 		reconstructionError.Dispose();
+		histograms.Dispose();
 		
 		var system = GetComponent<TCParticleSystem>();
 		system.Emitter.PointCloud = pointCloudData;

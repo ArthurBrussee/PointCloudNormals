@@ -587,8 +587,6 @@ public static class PointCloudNormals {
 				int count = end - start;
 
 				// Write our histograms to the image tensor
-				
-				// TODO: To Job system...
 				for (int ti = 0; ti < count; ++ti) {
 					var histoSpace = new NativeArray<float>(c_m * c_m * c_scaleLevels, Allocator.TempJob);
 

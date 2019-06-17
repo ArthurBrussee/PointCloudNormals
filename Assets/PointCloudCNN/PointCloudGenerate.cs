@@ -64,7 +64,14 @@ public class PointCloudGenerate : MonoBehaviour {
 
 		// Now that we have the hough histograms,
 		// we can estimate normals!
-		NativeArray<float3> reconstructedNormals = PointCloudNormals.CalculateNormals(histograms, trueNormals, UseCNN);
+		NativeArray<float3> reconstructedNormals;
+		if (!UseCNN) {
+			// Use classical methods
+			reconstructedNormals = PointCloudNormals.EstimateNormals(histograms, trueNormals);
+		} else {
+			// Pass to CNN!
+			reconstructedNormals = PointCloudNormals.EstimateNormalsCNN("TrainingCode/saved_models/tf_model.pb", histograms, trueNormals);
+		}
 
 		// Ok we have our properties -> Measure how well we did...
 		NativeArray<float> reconstructionError = PointCloudNormals.CalculateScore(reconstructedNormals, trueNormals, out float rms, out float pgp);

@@ -371,18 +371,7 @@ public static class PointCloudNormals {
 		return reconstructionError;
 	}
 
-	public static NativeArray<float3> CalculateNormals(NativeArray<HoughHistogram> houghTextures, NativeArray<float3> trueNormalsSample, bool useNeuralNet) {
-		NativeArray<float3> reconstructedNormals;
-		if (!useNeuralNet) {
-			// Use classical methods
-			reconstructedNormals = EstimateNormals(houghTextures, trueNormalsSample);
-		} else {
-			// Pass to CNN!
-			EstimatePropertiesCnn(houghTextures, trueNormalsSample, out reconstructedNormals);
-		}
 
-		return reconstructedNormals;
-	}
 
 	public static PointCloudData ConstructPointCloudData(NativeArray<float3> positions, NativeArray<float3> normals, NativeArray<Color32> albedo, bool showError, NativeArray<float> reconstructionError) {
 		// TC Particles point cloud data for visualization
@@ -552,7 +541,7 @@ public static class PointCloudNormals {
 	/// <summary>
 	/// Estimate normals for array of hough tex.
 	/// </summary>
-	static NativeArray<float3> EstimateNormals(NativeArray<HoughHistogram> textures, NativeArray<float3> trueNormals) {
+	public static NativeArray<float3> EstimateNormals(NativeArray<HoughHistogram> textures, NativeArray<float3> trueNormals) {
 		// First calculate normals for every bin
 		var normals = new NativeArray<float3>(textures.Length, Allocator.Persistent);
 		var job = new EstimateNormalsJob {
@@ -568,9 +557,9 @@ public static class PointCloudNormals {
 	/// <summary>
 	/// Estimate normals & roughness using the trained CNN
 	/// </summary>
-	static void EstimatePropertiesCnn(NativeArray<HoughHistogram> histograms, NativeArray<float3> trueNormals, out NativeArray<float3> normals) {
+	public static NativeArray<float3> EstimateNormalsCNN(string modelName, NativeArray<HoughHistogram> histograms, NativeArray<float3> trueNormals) {
 		// Construct tensofrflow graph
-		var graphData = File.ReadAllBytes("PointCloudCNN/saved_models/tf_model.pb");
+		var graphData = File.ReadAllBytes(modelName);
 
 		using (var graph = new TFGraph()) {
 			graph.Import(graphData);
@@ -600,20 +589,22 @@ public static class PointCloudNormals {
 				// Write our histograms to the image tensor
 				
 				// TODO: To Job system...
-				Parallel.For(0, count, tensorIndex => {
-					var histoSpace = new NativeArray<float>(c_m * c_m * c_scaleLevels, Allocator.Temp);
+				for (int ti = 0; ti < count; ++ti) {
+					var histoSpace = new NativeArray<float>(c_m * c_m * c_scaleLevels, Allocator.TempJob);
 
-					int i = tensorIndex + start;
+					int i = ti + start;
 					histograms[i].GetScaledHisto(histoSpace);
 
 					for (int k = 0; k < c_scaleLevels; ++k) {
 						for (int y = 0; y < c_m; ++y) {
 							for (int x = 0; x < c_m; ++x) {
-								imageTensor[tensorIndex, c_m - y - 1, x, k] = histoSpace[x + y * c_m + k * c_m * c_m];
+								imageTensor[ti, c_m - y - 1, x, k] = histoSpace[x + y * c_m + k * c_m * c_m];
 							}
 						}
 					}
-				});
+
+					histoSpace.Dispose();
+				}
 
 				Profiler.EndSample();
 
@@ -642,7 +633,7 @@ public static class PointCloudNormals {
 				Profiler.EndSample();
 			}
 
-			normals = normalsRet;
+			return normalsRet;
 		}
 	}
 }

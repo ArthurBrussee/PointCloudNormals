@@ -31,10 +31,10 @@ def cnn_model():
     model = Sequential()
 
     # add model layers
-    model.add(
-        Conv2D(50, kernel_size=3, activation='relu', input_shape=(args.M, args.M, args.scale_levels), name='input'))
-    model.add(Conv2D(50, kernel_size=3, activation='relu'))
+    inp_shape = (args.M, args.M, args.scale_levels)
+    model.add(Conv2D(50, kernel_size=3, activation='relu', input_shape=inp_shape, name='input'))
 
+    model.add(Conv2D(50, kernel_size=3, activation='relu'))
     model.add(MaxPool2D(pool_size=(2, 2)))
 
     model.add(Conv2D(96, kernel_size=3, activation='relu'))
@@ -45,9 +45,8 @@ def cnn_model():
     model.add(Dense(1024, activation='relu'))
     model.add(Dense(512, activation='relu'))
 
-    # Predict normal XY, roughness
-    model.add(Dense(3, name='output'))
-
+    # Predict normal XY
+    model.add(Dense(2, name='output'))
     return model
 
 
@@ -159,7 +158,9 @@ def train_model():
     model.compile(optimizer=Adam(lr=args.lr, decay=0.0), loss=keras.losses.mean_squared_error)
 
     # Save out model occasionally
-    checkpointer = ModelCheckpoint(os.path.join(save_dir, 'model_{epoch:03d}.hdf5'), verbose=1, save_weights_only=False,
+    checkpointer = ModelCheckpoint(os.path.join(save_dir, 'model_{epoch:03d}.hdf5'),
+                                   verbose=1,
+                                   save_weights_only=False,
                                    period=1)
 
     # Keep loss log
@@ -181,5 +182,4 @@ def train_model():
 
 
 if __name__ == '__main__':
-    # Train model with current hyperparameters
     train_model()

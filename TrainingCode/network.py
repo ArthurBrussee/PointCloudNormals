@@ -58,7 +58,7 @@ def lr_schedule(epoch):
 
 
 # Return one batch of data at a time for Keras
-def train_main(folder):
+def train_gen(folder):
     index = 0
     train_data = folder
     files = os.listdir(train_data)
@@ -102,15 +102,6 @@ def train_main(folder):
         index = random.randrange(len(files) - args.batch_size)
         yield batch_x, batch_y
 
-
-def train_datagen():
-    for bx, by in train_main('./TrainingData/'):
-        yield bx, by
-
-
-def train_validation_gen():
-    for bx, by in train_main('./ValidationData/'):
-        yield bx, by
 
 
 # Find last epoch saved in a folder
@@ -170,8 +161,8 @@ def train_model():
     tensorboard = TensorBoard(log_dir="board_logs/{}".format(time()))
 
     # Train model
-    model.fit_generator(train_datagen(),
-                        validation_data=train_validation_gen(),
+    model.fit_generator(train_gen('./TrainingData/'),
+                        validation_data=train_gen('./ValidationData/'),
                         validation_steps=16,
                         steps_per_epoch=args.epoch_steps,
                         epochs=args.epoch,

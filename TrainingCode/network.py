@@ -66,7 +66,7 @@ def train_gen(folder):
 
     while True:
         batch_x = np.empty(shape=(args.batch_size, args.M, args.M, args.scale_levels))
-        batch_y = np.empty(shape=(args.batch_size, 3))
+        batch_y = np.empty(shape=(args.batch_size, 2))
 
         i = 0
 
@@ -76,13 +76,11 @@ def train_gen(folder):
             # Read of property of image from filename, bit of a hack
             x_index = f.index('_x_')
             y_index = f.index('_y_')
-            r_index = f.index('_r_')
 
             ext_index = f.index('.png')
 
             normal_x = float(f[x_index + 3:y_index])
-            normal_y = float(f[y_index + 3:r_index])
-            roughness = float(f[r_index + 3:ext_index])
+            normal_y = float(f[y_index + 3:ext_index])
 
             # Read of image
             image = imread(train_data + f, as_gray=True)
@@ -93,7 +91,7 @@ def train_gen(folder):
                 offset2 = (k + 1) * args.M
                 batch_x[i, :, :, k] = image[offset:offset2, :]
 
-            batch_y[i, :] = np.array([normal_x, normal_y, roughness])
+            batch_y[i, :] = np.array([normal_x, normal_y])
             index += 1
             index = index % len(files)
             i += 1

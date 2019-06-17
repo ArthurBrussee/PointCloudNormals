@@ -17,16 +17,16 @@ The code relies heavily on Unity's new Burst and DOTS functionality.
 
 ## Results
 
-![Comparison on Cylinders](./Images/cylinderCompare.png)
+![Comparison on Cylinders](https://github.com/ArthurBrussee/PointCloudNormals/blob/master/Images/cylinderCompare.PNG?raw=true)
 
-![Comparison on Cubes](./Images/cubeCompare.png)
+![Comparison on Cubes](https://github.com/ArthurBrussee/PointCloudNormals/blob/master/Images/cubeCompare.PNG?raw=true)
 
-![Comparison on Spheres](./Images/sphereCompare.png)
+![Comparison on Spheres](https://github.com/ArthurBrussee/PointCloudNormals/blob/master/Images/sphereCompare.PNG?raw=true)
 
 The above images show reconstruction error with green being a 0 degree error, and red as a 60 degree error. In each image the upper row is using the 'classical' technique, whereas the bottom row is using the neural network. Each column represents a different noise level. As can be seen, the results for the neural network are much better, especially at higher noise levels. 
 
 
-![Comparison on real world rock mesh](./Images/rockCompare.png)
+![Comparison on real world rock mesh](https://github.com/ArthurBrussee/PointCloudNormals/blob/master/Images/rockCompare.PNG?raw=true)
 
 Comparison on a real world mesh. Left: Using the max bin method. Right: Using the neural network. 
 

@@ -134,7 +134,6 @@ public static class MeshSampler {
 					normalSample = normalA + r * (normalB - normalA) + s * (normalC - normalA);
 				}
 
-				posSample += normalSample * Rand.NextGaussian(NoiseLevel * 4.0f);
 				posSample += Rand.NextGaussianSphere(NoiseLevel);
 
 				MeshPoint point;
